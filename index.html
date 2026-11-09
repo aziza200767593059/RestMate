@@ -289,6 +289,7 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbykmvuECvDl8ZtWOGUHlv
 
 // App name: change it here and everything updates.
 const APP_NAME = "Restmate";
+const AFTER_DAYS = 3;
 
 /* ===================== DATA ===================== */
 const REST_TYPES = ["Сон", "Сериал / фильм", "Прогулка", "Друзья", "Игры", "Соцсети", "Музыка", "Ничего не делать"];
@@ -403,12 +404,12 @@ function renderHome() {
   // Check-in (before / after one week)
   const daysUsed = (Date.now() - state.firstDay) / DAY;
   const needBefore = state.before === null;
-  const needAfter = !needBefore && state.after === null && daysUsed >= 7;
+  const needAfter = !needBefore && state.after === null && daysUsed >= AFTER_DAYS;;
   $("check-card").classList.toggle("hidden", !(needBefore || needAfter));
-  $("check-title").textContent = needBefore ? "Стартовый вопрос" : "Прошла неделя";
+  $("check-title").textContent = needBefore ? "Стартовый вопрос" : "Последний вопрос";
   $("check-text").textContent = needBefore
     ? "Насколько сильно ты обычно чувствуешь вину, когда отдыхаешь?"
-    : "Ты пользуешься " + APP_NAME + " уже неделю. Насколько сильно ты сейчас чувствуешь вину, когда отдыхаешь?";
+    : "Ты пользуешься " + APP_NAME + " уже " + AFTER_DAYS + " дн. Насколько сильно ты сейчас чувствуешь вину, когда отдыхаешь?";
 
   // Reflection
   const q = randQuote();
