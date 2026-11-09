@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Restmate</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141316;
+    --card: #1d1c20;
+    --card-2: #26242b;
+    --border: #2c2a31;
+    --text: #efebe6;
+    --muted: #9b97a0;
+    --accent: #e39a57;
+    --accent-2: #f0b277;
+    --brown: #5a3a26;
+    --grad: linear-gradient(110deg, #6e4429 0%, #9a6640 35%, #c98a52 70%, #e39a57 100%);
+    --radius: 26px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: "Manrope", system-ui, sans-serif; }
+  body { min-height: 100vh; padding-bottom: 110px; }
+  button { font-family: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 18px 16px 0; }
+
+  /* Header */
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .hello { font-weight: 800; font-size: 17px; color: var(--accent); }
+  .date { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .avatar { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--accent); display: grid; place-items: center;
+            font-weight: 800; font-size: 14px; color: var(--accent-2); background: #2a211b; position: relative; }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px; }
+  .hero { background: var(--grad); border: 0; position: relative; overflow: hidden; padding: 24px 26px 18px; }
+  .hero::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 20% 110%, rgba(255,210,160,.25), transparent 45%),
+                 radial-gradient(circle at 60% 20%, rgba(70,40,20,.35), transparent 50%); pointer-events: none; }
+  .label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,240,225,.8); }
+  .big { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 46px; line-height: 1.1; margin: 14px 0 8px; color: #fff; }
+  .sub { font-size: 14px; color: rgba(255,240,225,.9); }
+  .chart { margin-top: 18px; position: relative; z-index: 1; }
+  .chart svg { width: 100%; height: 46px; display: block; }
+  .days { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,240,225,.75); padding: 6px 4px 0; }
+  .days span.today { color: #fff; font-weight: 800; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .grid2 .card { margin: 0; }
+  .icon { color: var(--accent); font-size: 18px; }
+  .num { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 32px; color: var(--accent-2); margin: 10px 0 6px; }
+  .num.small { font-size: 20px; line-height: 1.25; margin: 12px 0 8px; }
+  .cap { font-size: 14px; color: #cfcad0; font-weight: 600; }
+
+  .ai { border-color: rgba(227,154,87,.55); }
+  .ai-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+  .cup { width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(145deg, #3a2a20, #1f1a17); display: grid; place-items: center; font-size: 22px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 8px; background: var(--grad); color: #fff; margin-bottom: 6px; }
+  .ai-title { font-weight: 800; font-size: 17px; }
+  .ai p { color: #cfcad0; font-size: 14px; line-height: 1.5; margin: 0 0 14px; }
+  .note { background: var(--card-2); border-radius: 14px; padding: 13px 15px; font-size: 14px; font-weight: 700; color: var(--accent); line-height: 1.55; }
+  .note .who { display: block; color: var(--muted); font-weight: 600; font-size: 12px; margin-top: 6px; }
+
+  .btn { display: block; width: 100%; padding: 16px; border-radius: 16px; background: var(--grad); color: #fff; font-weight: 800; font-size: 15px; margin-top: 14px; }
+  .btn.ghost { background: var(--card-2); color: var(--text); }
+  .btn:active { transform: scale(.98); }
+
+  /* Lists */
+  h2 { font-size: 20px; font-weight: 800; margin: 6px 0 16px; }
+  .item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .item:last-child { border-bottom: 0; }
+  .item .t { font-weight: 700; }
+  .item .d { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .emo { font-size: 24px; }
+  .empty { color: var(--muted); text-align: center; padding: 26px 8px; font-size: 14px; line-height: 1.5; }
+  .quote { font-size: 16px; line-height: 1.55; font-weight: 600; }
+  .quote .who { display: block; color: var(--accent); font-size: 13px; font-weight: 700; margin-top: 10px; }
+  .muted { color: var(--muted); font-size: 14px; line-height: 1.55; }
+
+  /* Bottom nav */
+  nav { position: fixed; left: 0; right: 0; bottom: 0; background: #1a191d; border-top: 1px solid var(--border); height: 76px; z-index: 5; }
+  .nav-in { max-width: 520px; margin: 0 auto; height: 100%; display: grid; grid-template-columns: 1fr 1fr 90px 1fr 1fr; align-items: center; }
+  .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--muted); }
+  .nav-btn svg { width: 22px; height: 22px; }
+  .nav-btn.on { color: var(--accent); }
+  .fab { width: 72px; height: 72px; border-radius: 50%; background: var(--grad); margin: -34px auto 0; display: grid; place-items: center;
+         box-shadow: 0 0 0 6px var(--bg), 0 8px 24px rgba(227,154,87,.35); color: #fff; font-size: 28px; }
+
+  /* Sheet */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; z-index: 10; align-items: flex-end; justify-content: center; }
+  .overlay.open { display: flex; }
+  .sheet { width: 100%; max-width: 520px; background: var(--card); border-radius: 28px 28px 0 0; padding: 22px 18px 28px; border: 1px solid var(--border);
+           max-height: 92vh; overflow-y: auto; animation: up .25s ease; }
+  @keyframes up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .grab { width: 44px; height: 5px; border-radius: 3px; background: #3a3840; margin: 0 auto 18px; }
+  .sheet h3 { font-size: 20px; font-weight: 800; margin: 0 0 6px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 4px; }
+  .chip { padding: 11px 15px; border-radius: 14px; background: var(--card-2); border: 1px solid var(--border); font-weight: 700; font-size: 14px; }
+  .chip.on { background: rgba(227,154,87,.16); border-color: var(--accent); color: var(--accent-2); }
+  .feel { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .feel button { background: var(--card-2); border: 1px solid var(--border); border-radius: 18px; padding: 18px 8px; font-weight: 700; font-size: 14px; }
+  .feel button span { display: block; font-size: 30px; margin-bottom: 6px; }
+  .permit { background: var(--grad); border-radius: 22px; padding: 26px 22px; color: #fff; position: relative; overflow: hidden; margin-top: 6px; }
+  .permit .label { color: rgba(255,240,225,.85); }
+  .permit .ptitle { font-family: "Unbounded", sans-serif; font-weight: 800; font-size: 24px; margin: 12px 0 10px; line-height: 1.25; }
+  .permit .pq { font-size: 14px; line-height: 1.55; color: rgba(255,245,235,.95); }
+  .permit .pq b { display: block; margin-top: 8px; font-size: 12px; opacity: .85; }
+  .scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 16px; }
+  .scale button { background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 0; font-weight: 800; font-size: 15px; }
+  .scale-l { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin-top: 8px; }
+
+  .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); background: #1a191d; border: 1px solid var(--border);
+           padding: 13px 18px; border-radius: 16px; font-weight: 700; font-size: 14px; z-index: 20; display: none; white-space: nowrap; }
+  .toast.show { display: block; animation: up .2s ease; }
+  .hidden { display: none; }
+  .avatar { cursor: pointer; }
+
+  /* Together screen */
+  .bar-row { margin: 14px 0; }
+  .bar-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; margin-bottom: 7px; }
+  .bar-top span:last-child { color: var(--muted); font-weight: 600; font-size: 13px; }
+  .bar { height: 10px; border-radius: 6px; background: var(--card-2); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 6px; background: var(--grad); }
+  .demo { display: inline-block; font-size: 11px; font-weight: 700; color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 3px 8px; margin-bottom: 12px; }
+  .live { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #7bd88f; margin-right: 6px; box-shadow: 0 0 8px #7bd88f; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="hello" id="hello">Сәлем! · Restmate</div>
+      <div class="date" id="today"></div>
+    </div>
+    <div class="avatar" id="avatar" onclick="go('about')">S</div>
+  </header>
+
+  <!-- HOME -->
+  <section id="v-home">
+    <div class="card hero">
+      <div class="label">Отдыхов за неделю</div>
+      <div class="big" id="h-count">0</div>
+      <div class="sub" id="h-sub">Отдых это не потерянное время</div>
+      <div class="chart">
+        <svg id="h-chart" viewBox="0 0 300 46" preserveAspectRatio="none"></svg>
+        <div class="days" id="h-days"></div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="icon">☾</div>
+        <div class="num" id="s-calm">0</div>
+        <div class="cap">Без чувства вины</div>
+      </div>
+      <div class="card">
+        <div class="icon">◎</div>
+        <div class="num small" id="s-top">пока нет</div>
+        <div class="cap">Чаще всего</div>
+      </div>
+    </div>
+
+    <div class="card ai hidden" id="pending-card">
+      <div class="ai-head">
+        <div class="cup">☕</div>
+        <div><div class="badge">✦ Restmate</div><div class="ai-title">Как прошел отдых?</div></div>
+      </div>
+      <p id="pending-text">Ты разрешил(а) себе отдых. Расскажи, как ты себя чувствуешь сейчас.</p>
+      <button class="btn" onclick="openFeel()">Отметить самочувствие</button>
+    </div>
+
+    <div class="card ai hidden" id="check-card">
+      <div class="ai-head">
+        <div class="cup">✎</div>
+        <div><div class="badge">✦ 1 вопрос</div><div class="ai-title" id="check-title">Стартовый вопрос</div></div>
+      </div>
+      <p id="check-text">Насколько сильно ты обычно чувствуешь вину, когда отдыхаешь?</p>
+      <button class="btn" onclick="openCheck()">Ответить</button>
+    </div>
+
+    <div class="card ai">
+      <div class="ai-head">
+        <div class="cup">☕</div>
+        <div><div class="badge">✦ Рефлексия</div><div class="ai-title">Твоя неделя</div></div>
+      </div>
+      <p id="r-text">Отметь 3 отдыха, и здесь появится твоя рефлексия.</p>
+      <div class="note" id="r-quote"></div>
+      <button class="btn" onclick="openRest()">Разрешить себе отдых</button>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="v-history" class="hidden">
+    <h2>История отдыха</h2>
+    <div class="card" id="history-list"></div>
+  </section>
+
+  <!-- TOGETHER -->
+  <section id="v-together" class="hidden">
+    <h2>Вместе</h2>
+    <div id="t-demo"></div>
+    <div class="card hero">
+      <div class="label"><span class="live"></span>Сегодня отдыхали</div>
+      <div class="big" id="t-today">0</div>
+      <div class="sub" id="t-sub">Ты не один(а). Другие студенты тоже отдыхают.</div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="icon">☾</div>
+        <div class="num" id="t-calm">0%</div>
+        <div class="cap">Отдыхов без вины за неделю</div>
+      </div>
+      <div class="card">
+        <div class="icon">◎</div>
+        <div class="num" id="t-users">0</div>
+        <div class="cap">Студентов на этой неделе</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ai-title">Как отдыхают студенты</div>
+      <div id="t-types"></div>
+    </div>
+    <div class="card">
+      <div class="ai-title">Сейчас</div>
+      <div id="t-feed"></div>
+    </div>
+    <div class="card ai">
+      <div class="ai-head">
+        <div class="cup">☕</div>
+        <div><div class="badge">✦ Реальность</div><div class="ai-title">Не как в соцсетях</div></div>
+      </div>
+      <p style="margin:0">Посты об успехе показывают копию жизни, которой нет (Бодрийяр называл это симулякром). Здесь настоящие, анонимные данные о том, как отдыхают студенты.</p>
+    </div>
+  </section>
+
+  <!-- THOUGHTS -->
+  <section id="v-thoughts" class="hidden">
+    <h2>Мысли о досуге</h2>
+    <div id="quotes"></div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="v-about" class="hidden">
+    <h2>О проекте</h2>
+    <div class="card">
+      <p class="muted" style="margin-top:0" id="about-name"></p>
+      <p class="muted">Для Аристотеля досуг (σχολή) был не пустой тратой времени, а целью жизни.</p>
+      <p class="muted">Здесь нет баллов, рейтингов и серий. Мы не хотим, чтобы отдых стал еще одной задачей на продуктивность.</p>
+      <p class="muted" style="margin-bottom:0">Студенческий проект по философии. Данные анонимны: мы не сохраняем имя или Telegram ID.</p>
+    </div>
+    <div class="card">
+      <div class="ai-title" style="margin-bottom:8px">Исследование</div>
+      <p class="muted" style="margin:0">Чтобы оценить пользу приложения, анонимные ответы (вид отдыха, самочувствие и оценка вины 1-10) отправляются в таблицу исследования. На экране "Вместе" показываются только общие цифры, без личных данных.</p>
+    </div>
+    <div class="card">
+      <div class="ai-title" style="margin-bottom:8px">Твои данные</div>
+      <p class="muted" style="margin:0">Записи хранятся только в твоем Telegram. Ты можешь удалить их в любой момент.</p>
+      <button class="btn ghost" onclick="wipe()">Удалить все мои данные</button>
+    </div>
+  </section>
+</div>
+
+<nav>
+  <div class="nav-in">
+    <button class="nav-btn on" data-v="home" onclick="go('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Главная</button>
+    <button class="nav-btn" data-v="history" onclick="go('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16"/></svg>История</button>
+    <button class="fab" onclick="openRest()" aria-label="Отдых">✦</button>
+    <button class="nav-btn" data-v="together" onclick="go('together')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14.5c2.4.2 4 1.8 4.5 4.5"/></svg>Вместе</button>
+    <button class="nav-btn" data-v="thoughts" onclick="go('thoughts')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Мысли</button>
+  </div>
+</nav>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet" id="sheet"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== SETTINGS ===================== */
+// Optional: paste your Google Apps Script web app URL here to collect anonymous research data.
+// Leave empty to keep all data only on the user's device.
+const SHEET_URL = "";
+
+// App name: change it here and everything updates.
+const APP_NAME = "Restmate";
+
+/* ===================== DATA ===================== */
+const REST_TYPES = ["Сон", "Сериал / фильм", "Прогулка", "Друзья", "Игры", "Соцсети", "Музыка", "Ничего не делать"];
+const FEELINGS = {
+  guilt:   { emo: "😔", name: "Вина" },
+  neutral: { emo: "😐", name: "Нейтрально" },
+  calm:    { emo: "😌", name: "Спокойно" },
+  joy:     { emo: "😊", name: "Радость" }
+};
+const QUOTES = [
+  { q: "Мы трудимся, чтобы иметь досуг.", who: "Аристотель, Никомахова этика" },
+  { q: "Субъект достижений эксплуатирует сам себя, пока не сгорит. Он одновременно и хозяин, и раб.", who: "Идея Бён-Чхоль Хана, Общество усталости" },
+  { q: "Огромный вред причиняет вера в то, что работа добродетельна.", who: "Бертран Рассел, Похвала праздности" },
+  { q: "Ничего не достаточно тому, кому достаточное кажется малым.", who: "Эпикур" },
+  { q: "Жизнь длинна, если умеешь ею пользоваться.", who: "Сенека, О краткости жизни" },
+  { q: "Человек боится свободы и бежит от нее, подчиняясь чужим ожиданиям.", who: "Идея Эриха Фромма, Бегство от свободы" }
+];
+
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+const useCloud = !!(tg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9"));
+
+function storeGet(key) {
+  return new Promise(res => {
+    if (useCloud) {
+      tg.CloudStorage.getItem(key, (err, v) => res(err ? null : (v || null)));
+    } else {
+      try { res(localStorage.getItem(key)); } catch (e) { res(null); }
+    }
+  });
+}
+function storeSet(key, val) {
+  return new Promise(res => {
+    if (useCloud) { tg.CloudStorage.setItem(key, val, () => res()); }
+    else { try { localStorage.setItem(key, val); } catch (e) {} res(); }
+  });
+}
+
+let state = { entries: [], pending: null, anonId: null, before: null, after: null, firstDay: null };
+
+async function load() {
+  const raw = await storeGet("schole");
+  if (raw) { try { state = Object.assign(state, JSON.parse(raw)); } catch (e) {} }
+  if (!state.anonId) state.anonId = Math.random().toString(36).slice(2, 10);
+  if (!state.firstDay) state.firstDay = Date.now();
+  // CloudStorage values are limited in size, so keep only the last 60 entries
+  state.entries = state.entries.slice(-60);
+  await save();
+}
+function save() { return storeSet("schole", JSON.stringify(state)); }
+
+function send(kind, payload) {
+  if (!SHEET_URL) return;
+  const body = JSON.stringify(Object.assign({ kind, id: state.anonId, ts: new Date().toISOString() }, payload));
+  fetch(SHEET_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body }).catch(() => {});
+}
+
+/* ===================== HELPERS ===================== */
+const $ = id => document.getElementById(id);
+const DAY = 86400000;
+const dayKey = t => new Date(t).toDateString();
+const DOW = ["вс", "пн", "вт", "ср", "чт", "пт", "сб"];
+function haptic(type) { try { tg && tg.HapticFeedback.impactOccurred(type || "light"); } catch (e) {} }
+function toast(text) {
+  const t = $("toast"); t.textContent = text; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2200);
+}
+function randQuote() { return QUOTES[Math.floor(Math.random() * QUOTES.length)]; }
+function weekEntries() { const from = Date.now() - 7 * DAY; return state.entries.filter(e => e.ts >= from); }
+
+/* ===================== RENDER ===================== */
+function renderHeader() {
+  const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+  const name = u && u.first_name ? u.first_name : "";
+  $("hello").textContent = (name ? "Сәлем, " + name : "Сәлем!") + " · " + APP_NAME;
+  document.title = APP_NAME;
+  $("about-name").textContent = APP_NAME + " помогает отдыхать без чувства вины: дает разрешение на отдых и помогает заметить, что ты чувствуешь после.";
+  $("avatar").textContent = name ? name.slice(0, 2).toUpperCase() : "S";
+  $("today").textContent = new Date().toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" });
+}
+
+function renderHome() {
+  const week = weekEntries();
+  const calm = week.filter(e => e.feeling !== "guilt").length;
+  $("h-count").textContent = week.length;
+  $("h-sub").textContent = week.length ? "Без вины: " + calm + " из " + week.length : "Отдых это не потерянное время";
+  $("s-calm").textContent = calm;
+
+  const counts = {};
+  week.forEach(e => counts[e.type] = (counts[e.type] || 0) + 1);
+  const top = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  $("s-top").textContent = top || "пока нет";
+
+  // Chart: rests per day, last 7 days
+  const days = [], vals = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * DAY);
+    days.push(DOW[d.getDay()]);
+    vals.push(state.entries.filter(e => dayKey(e.ts) === d.toDateString()).length);
+  }
+  const max = Math.max(1, ...vals);
+  const pts = vals.map((v, i) => [10 + i * 46.6, 38 - (v / max) * 30]);
+  const line = pts.map(p => p.join(",")).join(" ");
+  $("h-chart").innerHTML =
+    '<polyline points="' + line + '" fill="none" stroke="rgba(255,240,225,.9)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+    pts.map((p, i) => '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (i === 6 ? 4 : 2.5) + '" fill="#fff"/>').join("");
+  $("h-days").innerHTML = days.map((d, i) => '<span class="' + (i === 6 ? "today" : "") + '">' + d + "</span>").join("");
+
+  // Pending rest
+  $("pending-card").classList.toggle("hidden", !state.pending);
+  if (state.pending) $("pending-text").textContent = "Ты разрешил(а) себе: " + state.pending.type.toLowerCase() + ". Как ты себя чувствуешь сейчас?";
+
+  // Check-in (before / after one week)
+  const daysUsed = (Date.now() - state.firstDay) / DAY;
+  const needBefore = state.before === null;
+  const needAfter = !needBefore && state.after === null && daysUsed >= 7;
+  $("check-card").classList.toggle("hidden", !(needBefore || needAfter));
+  $("check-title").textContent = needBefore ? "Стартовый вопрос" : "Прошла неделя";
+  $("check-text").textContent = needBefore
+    ? "Насколько сильно ты обычно чувствуешь вину, когда отдыхаешь?"
+    : "Ты пользуешься " + APP_NAME + " уже неделю. Насколько сильно ты сейчас чувствуешь вину, когда отдыхаешь?";
+
+  // Reflection
+  const q = randQuote();
+  $("r-quote").innerHTML = "«" + q.q + "»<span class='who'>" + q.who + "</span>";
+  $("r-text").textContent = reflection(week);
+}
+
+function reflection(week) {
+  if (week.length < 3) return "Отметь " + (3 - week.length) + " отдых(а), и здесь появится твоя рефлексия. Без оценок, только наблюдение.";
+  const by = {};
+  week.forEach(e => { by[e.type] = by[e.type] || { n: 0, g: 0 }; by[e.type].n++; if (e.feeling === "guilt") by[e.type].g++; });
+  const types = Object.keys(by);
+  const rate = t => by[t].g / by[t].n;
+  const best = types.slice().sort((a, b) => rate(a) - rate(b))[0];
+  const worst = types.slice().sort((a, b) => rate(b) - rate(a))[0];
+  const guilt = week.filter(e => e.feeling === "guilt").length;
+  let txt = "За неделю ты отдыхал(а) " + week.length + " раз, вину чувствовал(а) " + guilt + " раз. ";
+  if (guilt === 0) return txt + "Ты отдыхаешь без вины. Это и есть досуг в смысле Аристотеля.";
+  if (best !== worst) txt += "Меньше всего вины после: " + best.toLowerCase() + ". Больше всего: " + worst.toLowerCase() + ".";
+  else txt += "Обрати внимание, что чувствуешь после: " + best.toLowerCase() + ".";
+  return txt;
+}
+
+function renderHistory() {
+  const list = state.entries.slice().reverse();
+  $("history-list").innerHTML = list.length ? list.map(e =>
+    '<div class="item"><div><div class="t">' + e.type + '</div><div class="d">' +
+    new Date(e.ts).toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) +
+    " · " + FEELINGS[e.feeling].name + '</div></div><div class="emo">' + FEELINGS[e.feeling].emo + "</div></div>").join("")
+    : '<div class="empty">Пока пусто. Нажми ✦ внизу, чтобы разрешить себе первый отдых.</div>';
+}
+
+function renderQuotes() {
+  $("quotes").innerHTML = QUOTES.map(q => '<div class="card quote">«' + q.q + '»<span class="who">' + q.who + "</span></div>").join("");
+}
+
+function renderAll() { renderHome(); renderHistory(); }
+
+/* ===================== TOGETHER (all users, anonymous totals) ===================== */
+const DEMO_STATS = {
+  today: 14, users: 23, calmPct: 68,
+  types: [ { type: "Прогулка", n: 31, guiltPct: 10 }, { type: "Сериал / фильм", n: 27, guiltPct: 33 },
+           { type: "Сон", n: 22, guiltPct: 41 }, { type: "Соцсети", n: 19, guiltPct: 58 }, { type: "Друзья", n: 12, guiltPct: 8 } ],
+  feed: [ { type: "Прогулка", feeling: "calm", min: 4 }, { type: "Сон", feeling: "joy", min: 12 },
+          { type: "Соцсети", feeling: "guilt", min: 25 }, { type: "Друзья", feeling: "joy", min: 41 }, { type: "Сериал / фильм", feeling: "neutral", min: 63 } ]
+};
+
+function ago(min) {
+  if (min < 1) return "только что";
+  if (min < 60) return min + " мин назад";
+  const h = Math.floor(min / 60);
+  return h < 24 ? h + " ч назад" : Math.floor(h / 24) + " дн назад";
+}
+
+async function renderTogether() {
+  let s = null, demo = false;
+  if (SHEET_URL) {
+    try { s = await (await fetch(SHEET_URL + "?stats=1")).json(); } catch (e) { s = null; }
+  }
+  if (!s) { s = DEMO_STATS; demo = true; }
+
+  $("t-demo").innerHTML = demo ? '<span class="demo">Демо-данные: подключите таблицу, чтобы видеть реальные</span>' : "";
+  $("t-today").textContent = s.today;
+  $("t-sub").textContent = s.today ? "Ты не один(а). Сегодня отдыхали и другие студенты." : "Пока никто. Стань первым, кто разрешит себе отдых.";
+  $("t-calm").textContent = s.calmPct + "%";
+  $("t-users").textContent = s.users;
+
+  const max = Math.max(1, ...s.types.map(t => t.n));
+  $("t-types").innerHTML = s.types.length ? s.types.map(t =>
+    '<div class="bar-row"><div class="bar-top"><span>' + t.type + "</span><span>вина " + t.guiltPct + "%</span></div>" +
+    '<div class="bar"><i style="width:' + Math.round(t.n / max * 100) + '%"></i></div></div>').join("")
+    : '<div class="empty">Данных пока нет</div>';
+
+  $("t-feed").innerHTML = s.feed.length ? s.feed.map(f =>
+    '<div class="item"><div><div class="t">Кто-то выбрал: ' + f.type.toLowerCase() + '</div><div class="d">' + ago(f.min) +
+    " · " + (FEELINGS[f.feeling] || FEELINGS.neutral).name + '</div></div><div class="emo">' + (FEELINGS[f.feeling] || FEELINGS.neutral).emo + "</div></div>").join("")
+    : '<div class="empty">Пока тихо</div>';
+}
+
+function go(v) {
+  if (v === "together") renderTogether();
+  ["home", "history", "together", "thoughts", "about"].forEach(x => $("v-" + x).classList.toggle("hidden", x !== v));
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  window.scrollTo(0, 0);
+  haptic();
+}
+
+/* ===================== SHEETS (flows) ===================== */
+function openSheet(html) { $("sheet").innerHTML = '<div class="grab"></div>' + html; $("overlay").classList.add("open"); }
+function closeSheet() { $("overlay").classList.remove("open"); }
+
+let chosen = null;
+function openRest() {
+  chosen = null;
+  openSheet(
+    "<h3>Как ты хочешь отдохнуть?</h3><div class='muted'>Любой отдых считается. Даже \"ничего не делать\".</div>" +
+    "<div class='chips'>" + REST_TYPES.map(t => "<button class='chip' onclick='pick(this)'>" + t + "</button>").join("") + "</div>" +
+    "<button class='btn' onclick='permit()'>Разрешаю себе отдых</button>"
+  );
+  haptic();
+}
+function pick(el) {
+  document.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+  el.classList.add("on"); chosen = el.textContent; haptic();
+}
+async function permit() {
+  if (!chosen) { toast("Выбери вид отдыха"); return; }
+  state.pending = { type: chosen, ts: Date.now() };
+  await save();
+  const q = randQuote();
+  openSheet(
+    "<div class='permit'><div class='label'>Разрешение на отдых</div>" +
+    "<div class='ptitle'>" + chosen + ".<br>Отдых разрешен.</div>" +
+    "<div class='pq'>Это не потерянное время.<br><br>«" + q.q + "»<b>" + q.who + "</b></div></div>" +
+    "<button class='btn' onclick='openFeel()'>Я отдохнул(а), отметить самочувствие</button>" +
+    "<button class='btn ghost' onclick='later()'>Отмечу позже</button>"
+  );
+  try { tg && tg.HapticFeedback.notificationOccurred("success"); } catch (e) {}
+  renderHome();
+}
+function later() { closeSheet(); toast("Хорошего отдыха ✦"); }
+
+function openFeel() {
+  if (!state.pending) { openRest(); return; }
+  openSheet(
+    "<h3>Как ты себя чувствуешь после отдыха?</h3><div class='muted'>Нет правильного ответа. Это просто наблюдение.</div>" +
+    "<div class='feel'>" + Object.keys(FEELINGS).map(k =>
+      "<button onclick=\"feel('" + k + "')\"><span>" + FEELINGS[k].emo + "</span>" + FEELINGS[k].name + "</button>").join("") + "</div>"
+  );
+}
+async function feel(k) {
+  const e = { type: state.pending.type, feeling: k, ts: Date.now() };
+  state.entries.push(e); state.pending = null;
+  state.entries = state.entries.slice(-60);
+  await save();
+  send("rest", { type: e.type, feeling: k });
+  closeSheet(); renderAll();
+  toast(k === "guilt" ? "Спасибо за честность. Ты имеешь право на отдых" : "Записано ✦");
+}
+
+function openCheck() {
+  const isBefore = state.before === null;
+  openSheet(
+    "<h3>" + (isBefore ? "Насколько сильно ты обычно чувствуешь вину за отдых?" : "Насколько сильно ты сейчас чувствуешь вину за отдых?") + "</h3>" +
+    "<div class='muted'>1 = совсем нет, 10 = очень сильно</div>" +
+    "<div class='scale'>" + [1,2,3,4,5,6,7,8,9,10].map(n => "<button onclick='check(" + n + ")'>" + n + "</button>").join("") + "</div>" +
+    "<div class='scale-l'><span>нет вины</span><span>очень сильно</span></div>"
+  );
+}
+async function check(n) {
+  const isBefore = state.before === null;
+  if (isBefore) { state.before = n; state.firstDay = Date.now(); } else { state.after = n; }
+  await save();
+  send(isBefore ? "before" : "after", { score: n });
+  closeSheet(); renderHome();
+  toast("Спасибо ✦");
+}
+
+async function wipe() {
+  state = { entries: [], pending: null, anonId: Math.random().toString(36).slice(2, 10), before: null, after: null, firstDay: Date.now() };
+  await save(); renderAll(); go("home");
+  toast("Все данные удалены");
+}
+
+/* ===================== START ===================== */
+(async function start() {
+  if (tg) {
+    tg.ready(); tg.expand();
+    try { tg.setHeaderColor("#141316"); tg.setBackgroundColor("#141316"); } catch (e) {}
+  }
+  renderHeader(); renderQuotes();
+  await load();
+  renderAll();
+})();
+</script>
+</body>
+</html>
